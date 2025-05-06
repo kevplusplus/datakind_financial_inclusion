@@ -40,5 +40,6 @@ This will:
 - Build the Spark container
 - Automatically run the data ingestion script
 
-Don't forget to `docker-compose down` to stop all running containers
-If you want to remove the local postgres data you can delete `financial_inclusion_vietnam data` folder
+Don't forget to run `docker-compose down` to stop all running containers.
+
+If you want to remove the local postgres data you can delete `financial_inclusion_vietnam data` folder.
