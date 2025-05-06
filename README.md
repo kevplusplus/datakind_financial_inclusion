@@ -39,3 +39,5 @@ This will:
 - Start the PostgreSQL service
 - Build the Spark container
 - Automatically run the data ingestion script
+
+And do not forget to `docker-compose down` to stop all containers 
