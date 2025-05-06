@@ -20,18 +20,18 @@ A Spark-based data ingestion pipeline that reads raw financial inclusion data fr
 
 1. **Configure Environment Variables**
 
-Rename the provided `dotenv` file to `.env`
+   Rename the provided `dotenv` file to `.env`
 
-Then update the variables inside to match your local environment (e.g., PostgreSQL credentials and host configuration).
+   Then update the variables inside to match your local environment (e.g., PostgreSQL credentials and host configuration).
 
 2. **Navigate to the Project Directory**
    
-Make sure you're in the root directory of the project:
+   Make sure you're in the root directory of the project:
 
    `cd /path/to/project`
 
 3. **Start the Application**
-Use Docker Compose to build and run the containers:
+   Use Docker Compose to build and run the containers:
 
    `docker-compose up --build`
 
