@@ -1,0 +1,5 @@
+PG_USER=user
+PG_PASSWORD=password
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=financial_inclusion_vietnam

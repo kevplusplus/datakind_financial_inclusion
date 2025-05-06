@@ -1,0 +1,36 @@
+services:
+  spark:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    volumes:
+      - ./data:/app/data
+      # - ./drivers:/app/drivers
+      # - ./jars_dir:/opt/bitnami/spark/.ivy2
+    environment:
+    #   - JAVA_HOME=/opt/bitnami/java
+    #   - SPARK_HOME=/opt/bitnami/spark
+      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python
+      - PYSPARK_DRIVER_PYTHON=/opt/bitnami/python/bin/python
+    user: root
+    ports:
+      - "7077:7077"
+  postgres:
+    image: postgres:13
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${DB_NAME} -p ${DB_PORT}"]
+      interval: 10s
+      retries: 5
+      start_period: 25s
+      timeout: 10s
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./financial_inclusion_vietnam_data:/var/lib/postgresql/data:rw
+    ports:
+      - "${DB_PORT}:5432"
