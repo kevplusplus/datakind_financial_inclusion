@@ -42,4 +42,4 @@ This will:
 
 Don't forget to run `docker-compose down` to stop all running containers.
 
-If you want to remove the local postgres data you can delete `financial_inclusion_vietnam data` folder.
+If you want to remove local postgres data you can delete `financial_inclusion_vietnam data` folder.
