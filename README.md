@@ -28,12 +28,12 @@ Then update the variables inside to match your local environment (e.g., PostgreS
    
 Make sure you're in the root directory of the project:
 
-```cd /path/to/project
+`cd /path/to/project`
 
 3. **Start the Application**
 Use Docker Compose to build and run the containers:
 
-```docker-compose up --build
+`docker-compose up --build`
 This will:
 - Start the PostgreSQL service
 - Build the Spark container
