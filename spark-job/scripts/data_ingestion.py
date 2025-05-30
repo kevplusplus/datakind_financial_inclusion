@@ -148,7 +148,7 @@ def main():
     ).withColumn(
         "response_type", F.when(
             F.col("Series Name").contains(":"), 
-            F.regexp_extract(F.col("Series Name"), r":\s*([^(]+)", 1)
+            F.regexp_extract(F.col("Series Name"), r":\s*([^,(]+)", 1)
         ).otherwise(F.lit("no response"))
     ).withColumn(
         "age_category", F.when(

@@ -1,6 +1,6 @@
 services:
   spark:
-    build: .
+    build: ./spark-job
     depends_on:
       postgres:
         condition: service_healthy
@@ -8,14 +8,7 @@ services:
       - ./.env
     volumes:
       - ./data:/app/data
-      # - ./drivers:/app/drivers
-      # - ./jars_dir:/opt/bitnami/spark/.ivy2
-    environment:
-    #   - JAVA_HOME=/opt/bitnami/java
-    #   - SPARK_HOME=/opt/bitnami/spark
-      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python
-      - PYSPARK_DRIVER_PYTHON=/opt/bitnami/python/bin/python
-    user: root
+      - shared-data:/shared
     ports:
       - "7077:7077"
   postgres:
@@ -24,14 +17,37 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${DB_NAME} -p ${DB_PORT}"]
       interval: 10s
       retries: 5
-      start_period: 100s
+      start_period: 45s
       timeout: 10s
     environment:
       POSTGRES_USER: ${PG_USER}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./financial_inclusion_vietnam_data:/var/lib/postgresql/data:rw
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data:rw
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "${DB_PORT}:5432"
+  superset:
+    build: ./superset
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spark:
+        condition: service_started
+    env_file:
+      - .env
+    ports:
+      - "${SUPERSET_PORT}:8088"
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+      DATABASE_URL: postgresql+psycopg2://${PG_USER}:${PG_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+    volumes:
+      - superset_home:/app/superset_home
+      - shared-data:/shared
+
+#named volumes
+volumes:
+  pgdata:
+  superset_home:
+  shared-data:
