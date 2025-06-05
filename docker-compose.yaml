@@ -1,40 +1,58 @@
 services:
-  spark:
-    build: ./spark-job
+  postgres:
+      image: postgres:13
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${DB_NAME} -p ${DB_PORT}"]
+        interval: 10s
+        retries: 5
+        start_period: 45s
+        timeout: 10s
+      environment:
+        POSTGRES_USER: ${PG_USER}
+        POSTGRES_PASSWORD: ${PG_PASSWORD}
+        POSTGRES_DB: ${DB_NAME}
+      volumes:
+        - pgdata:/var/lib/postgresql/data:rw
+        - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      ports:
+        - "${DB_PORT}:5432"
+
+  ingestion-job:
+    build: ./spark/jobs/ingestion
     depends_on:
       postgres:
         condition: service_healthy
+    # entrypoint: ["/app/spark-ingestion.sh"]
     env_file:
       - ./.env
     volumes:
       - ./data:/app/data
       - shared-data:/shared
-    ports:
-      - "7077:7077"
-  postgres:
-    image: postgres:13
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${DB_NAME} -p ${DB_PORT}"]
-      interval: 10s
-      retries: 5
-      start_period: 45s
-      timeout: 10s
-    environment:
-      POSTGRES_USER: ${PG_USER}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+
+  transform-job:
+    build: ./spark/jobs/transformation
+    depends_on:
+      - ingestion-job
+    # entrypoint: ["/app/spark-ingestion.sh"]
+    env_file:
+      - ./.env
     volumes:
-      - pgdata:/var/lib/postgresql/data:rw
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "${DB_PORT}:5432"
+      - shared-data:/shared
+
+  analysis-job:
+    build: ./spark/jobs/analysis
+    depends_on:
+      - transform-job
+    # entrypoint: ["/app/spark-ingestion.sh"]
+    env_file:
+      - ./.env
+    volumes:
+      - shared-data:/shared
+
   superset:
     build: ./superset
     depends_on:
-      postgres:
-        condition: service_healthy
-      spark:
-        condition: service_started
+      - analysis-job
     env_file:
       - .env
     ports:

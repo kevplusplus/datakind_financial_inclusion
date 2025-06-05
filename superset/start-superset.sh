@@ -2,14 +2,10 @@
 set -e  #exit on any error
 
 echo "Waiting for Spark job to finish..."
-until [ -f /shared/ingestion_done.flag ]; do
+until [ -f /shared/analysis_done.flag ]; do
   sleep 5
 done
-echo "Spark job finished — continuing Superset startup"
-
-#remove the flag for next run
-#TODO need to figure out how to give permissions for this container
-# rm -f /shared/ingestion_done.flag
+echo "Spark analysis finished — continuing Superset startup"
 
 #run superset migrations and initialization
 echo "Upgrading Superset DB..."

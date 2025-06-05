@@ -3,39 +3,6 @@ from pyspark.sql import types
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
-def load_data(file_path, spark, schema):
-    """
-    Load financial inclusion data from various file formats
-    Supports CSV, Excel, and potentially others based on file extension
-    """
-    file_extension = os.path.splitext(file_path)[1].lower()
-    
-    try:
-        if file_extension == '.csv':
-            df = spark.read \
-                .option("header", "true") \
-                .schema(schema) \
-                .csv(file_path)
-        elif file_extension == '.json':
-            df = spark.read \
-                .option("header", "true") \
-                .schema(schema) \
-                .json(file_path)
-        elif file_extension == '.parquet':
-            df = spark.read \
-                .option("header", "true") \
-                .schema(schema) \
-                .parquet(file_path)
-        else:
-            raise ValueError(f"Unsupported file format: {file_extension}")
-        
-        print(f"Successfully loaded data with {df.count()} rows and {df.columns} columns")
-        return df
-    except Exception as e:
-        print(f"Error loading data: {e}")
-        return None
-
-
 def main():
 
     print(os.environ["JAVA_HOME"])
@@ -57,19 +24,6 @@ def main():
 
     url = f'jdbc:postgresql://{host}:{port}/{database}'
 
-    #file path to data
-    current_dir = os.getcwd()
-    file_name = "data/vietnam_financial_inclusion_data.csv"
-
-    file_path = os.path.join(current_dir,file_name)
-
-    #manually defined schema
-    raw_schema = types.StructType([
-        types.StructField("Country Name", types.StringType(), False),
-        types.StructField("Series Name", types.StringType(), False),
-        types.StructField("2017", types.DoubleType(), True),
-        types.StructField("2022", types.DoubleType(), True),
-    ])
 
     #time dimension schema
     time_dimension_schema = types.StructType([
@@ -112,32 +66,18 @@ def main():
 
 
     spark = SparkSession.builder \
-        .appName('Financial Inclusion Ingestion') \
+        .appName('Financial Inclusion Transform') \
         .getOrCreate()
     
-    raw_df = load_data(file_path, spark, raw_schema)
+    stg_df = spark.read.jdbc(url=url, table="stg.vietnam_financial_inclusion", properties=properties)
 
-    if raw_df is None:
-        print("No file loaded.")
+
+    if stg_df is None:
+        print("No table loaded.")
         return
 
-    #removing last 5 rows since they do not contribute to the data
-    row_count = raw_df.count()
-    
-    if row_count <= 5:
-        print("Not enough rows to trim, skipping.")
-    else:
-        raw_df = raw_df.orderBy(F.desc("Series Name")).limit(raw_df.count()-5)
-        raw_df = raw_df.orderBy(F.asc("Series Name"))
-
-    #removing country column since we are only working with one country
-    raw_df = raw_df.drop("Country Name")
-
-    #removing missing data
-    raw_df = raw_df.dropna(thresh=1, subset=["2017","2022"])
-
     #unpivot data
-    unpivoted_df = raw_df.select(
+    unpivoted_df = stg_df.select(
         "Series Name",
         F.expr("stack(2, '2017', `2017`, '2022', `2022`) as (year, value)")
     )
@@ -271,14 +211,6 @@ def main():
         print(f"❌ Failed to write to PostgreSQL: {e}")
     
     spark.stop()
-
-    # query = """
-    # SELECT survey_question, vietnam_2017, vietnam_2022
-    # FROM temp_view
-    # WHERE vietnam_2017 IS NOT NULL AND vietnam_2022 IS NULL
-    # """
-
-    # spark.sql(query).show()
 
     
 if __name__ == "__main__":
