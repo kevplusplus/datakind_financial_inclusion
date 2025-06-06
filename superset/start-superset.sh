@@ -22,5 +22,7 @@ superset fab create-admin \
 echo "Initializing Superset..."
 superset init
 
+python register_database.py
+
 echo "Starting Superset server..."
 exec superset run -h 0.0.0.0 -p 8088

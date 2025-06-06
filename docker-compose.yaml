@@ -24,7 +24,7 @@ services:
         condition: service_healthy
     # entrypoint: ["/app/spark-ingestion.sh"]
     env_file:
-      - ./.env
+      - .env
     volumes:
       - ./data:/app/data
       - shared-data:/shared
@@ -32,27 +32,30 @@ services:
   transform-job:
     build: ./spark/jobs/transformation
     depends_on:
-      - ingestion-job
+      postgres:
+        condition: service_healthy
     # entrypoint: ["/app/spark-ingestion.sh"]
     env_file:
-      - ./.env
+      - .env
     volumes:
       - shared-data:/shared
 
   analysis-job:
     build: ./spark/jobs/analysis
     depends_on:
-      - transform-job
+      postgres:
+        condition: service_healthy
     # entrypoint: ["/app/spark-ingestion.sh"]
     env_file:
-      - ./.env
+      - .env
     volumes:
       - shared-data:/shared
 
   superset:
     build: ./superset
     depends_on:
-      - analysis-job
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     ports:

@@ -8,6 +8,8 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY register_database.py .
+
 #copy entrypoint script and make it executable
 COPY start-superset.sh .
 

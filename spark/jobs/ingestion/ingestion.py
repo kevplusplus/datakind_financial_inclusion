@@ -106,14 +106,6 @@ def main():
     
     spark.stop()
 
-    # query = """
-    # SELECT survey_question, vietnam_2017, vietnam_2022
-    # FROM temp_view
-    # WHERE vietnam_2017 IS NOT NULL AND vietnam_2022 IS NULL
-    # """
-
-    # spark.sql(query).show()
-
     
 if __name__ == "__main__":
     main()
