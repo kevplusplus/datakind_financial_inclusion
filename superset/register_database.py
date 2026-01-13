@@ -6,7 +6,7 @@ from superset.models.core import Database
 
 app = create_app()
 
-# --- Configuration: customize these as needed ---
+# --- Configuration ---
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("PG_USER")
 DB_PASSWORD = os.getenv("PG_PASSWORD")
@@ -15,13 +15,12 @@ DB_PORT = os.getenv("DB_PORT")
 
 SQLALCHEMY_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-DB_DISPLAY_NAME = "My Postgres DB"  # This is what shows in the Superset UI
+DB_DISPLAY_NAME = "My Postgres DB"
 
 # --- End configuration ---
 
 with app.app_context():
-    # Check if DB already exists
-
+    #check if DB already exists
     existing = db.session.query(Database).filter_by(database_name=DB_DISPLAY_NAME).first()
     if existing:
         print(f"Database '{DB_DISPLAY_NAME}' already exists. Skipping creation.")
